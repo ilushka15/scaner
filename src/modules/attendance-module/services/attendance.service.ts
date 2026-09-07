@@ -5,10 +5,11 @@ import { GroupInput, StudentInput } from "../dto/attendance.dto";
 
 export default class AttendanceService {
   public async getState(date = new Date().toISOString().slice(0, 10)): Promise<AttendanceState> {
+    this.validateDate(date);
     const students = await database.query<Student[]>("SELECT id, naam, studentnummer, groep FROM students ORDER BY naam");
     const groups = await database.query<Group[]>("SELECT name FROM `groups` ORDER BY name");
     const checkins = await database.query<Checkin[]>(
-      "SELECT studentnummer, DATE_FORMAT(datum, '%Y-%m-%d') AS datum, DATE_FORMAT(tijd, '%H:%i:%s') AS tijd FROM checkins WHERE datum = ? ORDER BY tijd DESC",
+      "SELECT studentnummer, DATE_FORMAT(datum, '%Y-%m-%d') AS datum, DATE_FORMAT(tijd, '%H:%i:%s') AS tijd, CASE WHEN TIME(tijd) <= '08:45:00' THEN 'op tijd' ELSE 'te laat' END AS status FROM checkins WHERE datum = ? ORDER BY tijd DESC",
       [date]
     );
     return { students, groups: groups.map((group) => group.name), checkins };
@@ -73,5 +74,14 @@ export default class AttendanceService {
     if (existing.length > 0) return { type: "dubbel", student, tijd: existing[0].tijd };
     await database.query<DatabaseResult>("INSERT INTO checkins (studentnummer, datum, tijd) VALUES (?, CURDATE(), NOW())", [code]);
     return { type: "ok", student, tijd: new Date().toTimeString().slice(0, 8) };
+  }
+
+  private validateDate(date: string): void {
+    const parsed = new Date(`${date}T00:00:00`);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(parsed.getTime()) || parsed > today) {
+      throw new ApiError("Kies een geldige datum tot en met vandaag.", 400);
+    }
   }
 }

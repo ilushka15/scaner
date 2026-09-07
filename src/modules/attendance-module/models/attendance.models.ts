@@ -13,6 +13,7 @@ export interface Checkin {
   studentnummer: string;
   datum: string;
   tijd: string;
+  status: "op tijd" | "te laat";
 }
 
 export interface AttendanceState {
