@@ -27,7 +27,7 @@
 </head>
 <body>
   <div class="shell"><header><div class="brand"><span class="brand-mark">⌁</span><span>Aanwezig</span></div><nav><button class="ghost" onclick="navigate('scan')">Scanstation</button><button class="ghost" onclick="navigate('dashboard')">Dashboard</button></nav></header><main id="app"></main></div>
-  <script>
+  <script src="/dist/src/frontend.js"></script><script type="text/plain">
     const state = { page:'scan', tab:'overview', date:new Date().toISOString().slice(0,10), group:'', search:'', lateOnly:false, data:{ students:[], groups:[], checkins:[] } };
     const api = async (path, options={}) => { const response = await fetch('/api/v1/attendance'+path, { headers:{'Content-Type':'application/json'}, ...options }); if(response.status===204)return null; const body=await response.json(); if(!response.ok)throw Error(body.message||'Er is iets misgegaan.'); return body; };
     const esc = (value) => String(value??'').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[char]);
