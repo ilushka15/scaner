@@ -1,28 +1,70 @@
 <!doctype html>
 <html lang="nl">
 <head>
-	<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-	<title>Aanwezigheidsscan</title>
-	<style>body{font-family:Arial,sans-serif;max-width:1000px;margin:auto;padding:24px;background:#f4f7f5;color:#102a2a}nav{display:flex;gap:8px;margin-bottom:24px}button{padding:8px 12px;cursor:pointer}section{background:white;padding:20px;border-radius:10px;margin-bottom:16px}input,select{padding:8px;margin:4px}li{margin:8px 0}.error{color:#b22}</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aanwezigheidssysteem</title>
+  <style>
+    :root { font-family: system-ui, sans-serif; color: #17202a; background: #eef4f1; }
+    body { max-width: 1050px; margin: 0 auto; padding: 24px; }
+    header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; }
+    nav, form { display: flex; flex-wrap: wrap; gap: 8px; }
+    button, input, select { border: 1px solid #b7c7c1; border-radius: 6px; padding: 9px 12px; font: inherit; }
+    button { background: #176b5b; color: white; border: 0; cursor: pointer; }
+    button.secondary { background: #dce8e3; color: #17483f; }
+    button.danger { background: #a33b3b; }
+    main { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+    section { background: white; border: 1px solid #d7e3de; border-radius: 8px; padding: 20px; }
+    .wide { grid-column: 1 / -1; }
+    h1, h2 { margin-top: 0; } h1 { color: #145447; }
+    ul { padding-left: 20px; } li { margin: 10px 0; }
+    .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .message { min-height: 24px; font-weight: 600; } .error { color: #a33b3b; } .success { color: #176b5b; }
+    code { background: #edf3f0; padding: 2px 5px; border-radius: 4px; }
+    @media (max-width: 600px) { body { padding: 14px; } header { display: block; } nav { margin-top: 12px; } form > * { flex: 1 1 100%; } }
+  </style>
 </head>
 <body>
-<nav><button onclick="show('scan')">Scanstation</button><button onclick="show('dashboard')">Dashboard</button></nav>
-<main id="app"></main>
-<script>
-const state={students:[],groups:[],checkins:[],view:'scan'};
-const api=async(path,options={})=>{const r=await fetch(path,{headers:{'Content-Type':'application/json'},...options});const x=await r.json();if(!r.ok)throw Error(x.error||'API-fout');return x};
-const today=()=>new Date().toISOString().slice(0,10), esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-async function load(){Object.assign(state,await api('/api/state'));render()}
-function show(view){state.view=view;render()}
-function render(){document.getElementById('app').innerHTML=state.view==='scan'?scan():dashboard()}
-function scan(){return `<section><h1>Inchecken</h1><p>Scan een studentenpas of voer een studentnummer in.</p><input id="code" autofocus placeholder="Studentnummer"><button onclick="scanStudent()">Scan</button><p id="feedback"></p></section><section><h2>Vandaag ingecheckt</h2><ul>${state.checkins.filter(x=>x.datum===today()).map(x=>`<li>${esc(state.students.find(s=>s.studentnummer===x.studentnummer)?.naam||x.studentnummer)} - ${x.tijd}</li>`).join('')}</ul></section>`}
-function dashboard(){return `<section><h1>Dashboard</h1><h2>Studenten</h2><ul>${state.students.map(s=>`<li>${esc(s.naam)} (${esc(s.studentnummer)}) - ${esc(s.groep||'geen groep')} <button onclick="removeStudent(${s.id})">Verwijder</button></li>`).join('')}</ul><input id="naam" placeholder="Naam"><input id="nummer" placeholder="Studentnummer"><select id="groep">${state.groups.map(g=>`<option>${esc(g)}</option>`).join('')}</select><button onclick="addStudent()">Toevoegen</button></section><section><h2>Groepen</h2><ul>${state.groups.map(g=>`<li>${esc(g)} <button onclick="removeGroup('${encodeURIComponent(g)}')">Verwijder</button></li>`).join('')}</ul><input id="newgroup" placeholder="Nieuwe groep"><button onclick="addGroup()">Toevoegen</button></section>`}
-async function scanStudent(){const input=document.getElementById('code');if(!input.value.trim())return;const r=await api('/api/scan',{method:'POST',body:JSON.stringify({code:input.value})});document.getElementById('feedback').textContent=r.type==='ok'?`Welkom, ${r.student.naam}`:r.type==='dubbel'?`${r.student.naam} was al ingecheckt`:`Onbekende studentenpas: ${r.code}`;await load()}
-async function addStudent(){await api('/api/students',{method:'POST',body:JSON.stringify({naam:naam.value,studentnummer:nummer.value,groep:groep.value})});await load()}
-async function removeStudent(id){await api('/api/students/'+id,{method:'DELETE'});await load()}
-async function addGroup(){await api('/api/groups',{method:'POST',body:JSON.stringify({name:newgroup.value})});await load()}
-async function removeGroup(name){await api('/api/groups/'+name,{method:'DELETE'});await load()}
-let buffer='',last=0;document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;const n=Date.now();if(n-last>300)buffer='';last=n;if(e.key==='Enter'){if(buffer){document.getElementById('code').value=buffer;scanStudent()}buffer=''}else if(e.key.length===1)buffer+=e.key});
-load().catch(e=>document.getElementById('app').innerHTML=`<p class="error">${esc(e.message)}</p>`);
-</script>
-</body></html>
+  <header>
+    <div><h1>Aanwezigheidssysteem</h1><div>REST API + MySQL</div></div>
+    <nav><button onclick="show('scan')">Scanstation</button><button class="secondary" onclick="show('manage')">Beheer</button><a href="/docs" target="_blank"><button class="secondary">API docs</button></a></nav>
+  </header>
+  <main id="app"></main>
+  <script>
+    const state = { view: 'scan', data: { students: [], groups: [], checkins: [] } };
+    const api = async (path, options = {}) => {
+      const response = await fetch('/api/v1/attendance' + path, { headers: { 'Content-Type': 'application/json' }, ...options });
+      if (response.status === 204) return null;
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.message || 'API-fout');
+      return body;
+    };
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[char]);
+    const today = () => new Date().toISOString().slice(0, 10);
+    async function load() { state.data = await api('/state'); render(); }
+    function show(view) { state.view = view; render(); }
+    function render() { document.getElementById('app').innerHTML = state.view === 'scan' ? scanView() : manageView(); }
+    function scanView() {
+      const checkins = state.data.checkins.map((checkin) => {
+        const student = state.data.students.find((item) => item.studentnummer === checkin.studentnummer);
+        return `<li>${escapeHtml(student?.naam || checkin.studentnummer)} <small>${checkin.tijd}</small></li>`;
+      }).join('');
+      return `<section class="wide"><h2>Student inchecken</h2><p>Scan de studentenpas of vul het studentnummer in.</p><form onsubmit="scan(event)"><input id="scanCode" placeholder="Bijvoorbeeld 252272" autofocus><button>Inchecken</button></form><p id="message" class="message"></p></section><section><h2>Vandaag</h2>${checkins ? `<ul>${checkins}</ul>` : '<p>Nog niemand ingecheckt.</p>'}</section>`;
+    }
+    function manageView() {
+      const students = state.data.students.map((student) => `<li><div class="row"><span><strong>${escapeHtml(student.naam)}</strong><br><code>${escapeHtml(student.studentnummer)}</code> · ${escapeHtml(student.groep || 'Geen groep')}</span><button class="danger" onclick="removeStudent(${student.id})">Verwijder</button></div></li>`).join('');
+      const groups = state.data.groups.map((group) => `<li><div class="row"><span>${escapeHtml(group)}</span><button class="danger" onclick="removeGroup('${encodeURIComponent(group)}')">Verwijder</button></div></li>`).join('');
+      const options = state.data.groups.map((group) => `<option value="${escapeHtml(group)}">${escapeHtml(group)}</option>`).join('');
+      return `<section><h2>Student toevoegen</h2><form onsubmit="addStudent(event)"><input id="name" placeholder="Naam" required><input id="number" placeholder="Studentnummer" required><select id="group"><option value="">Geen groep</option>${options}</select><button>Toevoegen</button></form><ul>${students || '<li>Nog geen studenten.</li>'}</ul></section><section><h2>Groep toevoegen</h2><form onsubmit="addGroup(event)"><input id="newGroup" placeholder="Bijvoorbeeld ICT-2A" required><button>Toevoegen</button></form><ul>${groups || '<li>Nog geen groepen.</li>'}</ul></section>`;
+    }
+    async function run(action) { try { await action(); await load(); } catch (error) { const message = document.getElementById('message'); if (message) { message.textContent = error.message; message.className = 'message error'; } else alert(error.message); } }
+    function scan(event) { event.preventDefault(); run(async () => { const result = await api('/scan', { method: 'POST', body: JSON.stringify({ code: document.getElementById('scanCode').value }) }); const message = document.getElementById('message'); message.textContent = result.type === 'ok' ? `Welkom, ${result.student.naam}.` : result.type === 'dubbel' ? `${result.student.naam} was al ingecheckt.` : `Onbekend studentnummer: ${result.code}.`; message.className = 'message ' + (result.type === 'onbekend' ? 'error' : 'success'); document.getElementById('scanCode').value = ''; }); }
+    function addStudent(event) { event.preventDefault(); run(() => api('/students', { method: 'POST', body: JSON.stringify({ naam: name.value, studentnummer: number.value, groep: group.value || null }) })); }
+    function removeStudent(id) { if (confirm('Student verwijderen?')) run(() => api('/students/' + id, { method: 'DELETE' })); }
+    function addGroup(event) { event.preventDefault(); run(() => api('/groups', { method: 'POST', body: JSON.stringify({ name: newGroup.value }) })); }
+    function removeGroup(name) { if (confirm('Groep verwijderen?')) run(() => api('/groups/' + name, { method: 'DELETE' })); }
+    document.addEventListener('keydown', (event) => { if (event.target.tagName === 'INPUT' || event.key === 'Enter') return; if (event.key.length === 1) { const input = document.getElementById('scanCode'); if (input) { input.value += event.key; input.focus(); } } });
+    load().catch((error) => { document.getElementById('app').innerHTML = `<section><p class="error">${escapeHtml(error.message)} Controleer of MySQL draait.</p></section>`; });
+  </script>
+</body>
+</html>
