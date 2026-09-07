@@ -25,6 +25,14 @@ function findCheckin(array $checkins, string $number): ?array
     }
     return null;
 }
+
+function dutchDate(string $date): string
+{
+    $days = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'];
+    $months = ['', 'januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+    $time = strtotime($date);
+    return $days[(int) date('w', $time)] . ' ' . date('j', $time) . ' ' . $months[(int) date('n', $time)];
+}
 ?>
 <!doctype html>
 <html lang="nl">
@@ -37,10 +45,10 @@ function findCheckin(array $checkins, string $number): ?array
 <body>
 <div class="shell">
     <header class="header">
-        <a class="brand" href="index.php"><span class="brand-mark">A</span>Aanwezig</a>
+        <a class="brand" href="index.php"><span class="brand-mark">A</span>Aanwezigheidsscan</a>
         <nav>
-            <a href="index.php?page=scan">Scanstation</a>
-            <a href="index.php?page=dashboard">Dashboard</a>
+            <a class="<?= $page === 'scan' ? 'active' : '' ?>" href="index.php?page=scan">Scanstation</a>
+            <a class="<?= $page === 'dashboard' ? 'active' : '' ?>" href="index.php?page=dashboard">Dashboard</a>
         </nav>
     </header>
 
@@ -67,7 +75,12 @@ function findCheckin(array $checkins, string $number): ?array
             </section>
 
             <section class="summary">
-                <div><h2><?= e(date('l j F', strtotime($date))) ?></h2><p><?= count($state['checkins']) ?> studenten ingecheckt</p></div>
+                <div><h2><?= e(dutchDate($date)) ?></h2><p><?= count($state['checkins']) ?> studenten ingecheckt</p></div>
+            </section>
+            <section class="stats">
+                <div class="stat"><span>Ingecheckt</span><strong><?= count($state['checkins']) ?></strong><small>vandaag</small></div>
+                <div class="stat"><span>Studenten</span><strong><?= count($state['students']) ?></strong><small>in systeem</small></div>
+                <div class="stat"><span>Te laat</span><strong><?= count(array_filter($state['checkins'], fn (array $checkin): bool => $checkin['status'] === 'te laat')) ?></strong><small>check-ins</small></div>
             </section>
             <div class="table-wrap">
                 <table>
