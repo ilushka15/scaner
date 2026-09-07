@@ -14,7 +14,11 @@ nav { display:flex; gap:24px; color:var(--muted); font-weight:600; } nav a:hover
 button, input, select { font:inherit; } button { cursor:pointer; border:0; border-radius:9px; padding:11px 16px; color:white; background:var(--green); font-weight:600; } button:hover { background:var(--dark); }
 input, select { width:100%; border:1px solid var(--line); border-radius:9px; padding:11px 13px; background:var(--panel); color:var(--ink); } label { display:block; margin-bottom:7px; color:var(--muted); font-size:13px; }
 .message { margin-top:22px; padding:13px 16px; border-radius:9px; color:var(--success); background:#eaf3de; }
-.scan-box { display:grid; gap:8px; place-content:center; min-height:220px; margin:32px 0 22px; border:1px dashed #c8c8bd; border-radius:15px; color:var(--muted); } .scan-box strong { color:var(--ink); font-size:18px; }
+.scan-box { position:relative; display:grid; gap:8px; place-content:center; min-height:220px; margin:32px 0 22px; overflow:hidden; border:1px dashed #c8c8bd; border-radius:15px; color:var(--muted); }
+.scan-box::after { content:""; position:absolute; top:0; left:7%; width:86%; height:2px; background:#8aa65d; box-shadow:0 0 8px 2px rgba(90,107,63,.55); animation:scan-line 2.4s ease-in-out infinite alternate; }
+.scan-box strong, .scan-box span { position:relative; z-index:1; } .scan-box strong { color:var(--ink); font-size:18px; }
+@keyframes scan-line { from { transform:translateY(0); } to { transform:translateY(218px); } }
+@media (prefers-reduced-motion: reduce) { .scan-box::after { animation:none; } }
 .scan-form { display:flex; gap:10px; } .scan-form button { white-space:nowrap; }
 .today { margin-top:42px; text-align:left; } .checkin, .list li { display:flex; justify-content:space-between; gap:15px; padding:14px 0; border-top:1px solid var(--line); } .checkin span:last-child { color:var(--muted); }
 .tabs { display:flex; gap:26px; margin:30px 0 24px; border-bottom:1px solid var(--line); } .tabs a { padding-bottom:12px; color:var(--muted); } .tabs .active { border-bottom:2px solid var(--green); color:var(--ink); }
