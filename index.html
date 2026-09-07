@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="nl">
+<head>
+	<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>Aanwezigheidsscan</title>
+	<style>body{font-family:Arial,sans-serif;max-width:1000px;margin:auto;padding:24px;background:#f4f7f5;color:#102a2a}nav{display:flex;gap:8px;margin-bottom:24px}button{padding:8px 12px;cursor:pointer}section{background:white;padding:20px;border-radius:10px;margin-bottom:16px}input,select{padding:8px;margin:4px}li{margin:8px 0}.error{color:#b22}</style>
+</head>
+<body>
+<nav><button onclick="show('scan')">Scanstation</button><button onclick="show('dashboard')">Dashboard</button></nav>
+<main id="app"></main>
+<script>
+const state={students:[],groups:[],checkins:[],view:'scan'};
+const api=async(path,options={})=>{const r=await fetch(path,{headers:{'Content-Type':'application/json'},...options});const x=await r.json();if(!r.ok)throw Error(x.error||'API-fout');return x};
+const today=()=>new Date().toISOString().slice(0,10), esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function load(){Object.assign(state,await api('/api/state'));render()}
+function show(view){state.view=view;render()}
+function render(){document.getElementById('app').innerHTML=state.view==='scan'?scan():dashboard()}
+function scan(){return `<section><h1>Inchecken</h1><p>Scan een studentenpas of voer een studentnummer in.</p><input id="code" autofocus placeholder="Studentnummer"><button onclick="scanStudent()">Scan</button><p id="feedback"></p></section><section><h2>Vandaag ingecheckt</h2><ul>${state.checkins.filter(x=>x.datum===today()).map(x=>`<li>${esc(state.students.find(s=>s.studentnummer===x.studentnummer)?.naam||x.studentnummer)} - ${x.tijd}</li>`).join('')}</ul></section>`}
+function dashboard(){return `<section><h1>Dashboard</h1><h2>Studenten</h2><ul>${state.students.map(s=>`<li>${esc(s.naam)} (${esc(s.studentnummer)}) - ${esc(s.groep||'geen groep')} <button onclick="removeStudent(${s.id})">Verwijder</button></li>`).join('')}</ul><input id="naam" placeholder="Naam"><input id="nummer" placeholder="Studentnummer"><select id="groep">${state.groups.map(g=>`<option>${esc(g)}</option>`).join('')}</select><button onclick="addStudent()">Toevoegen</button></section><section><h2>Groepen</h2><ul>${state.groups.map(g=>`<li>${esc(g)} <button onclick="removeGroup('${encodeURIComponent(g)}')">Verwijder</button></li>`).join('')}</ul><input id="newgroup" placeholder="Nieuwe groep"><button onclick="addGroup()">Toevoegen</button></section>`}
+async function scanStudent(){const input=document.getElementById('code');if(!input.value.trim())return;const r=await api('/api/scan',{method:'POST',body:JSON.stringify({code:input.value})});document.getElementById('feedback').textContent=r.type==='ok'?`Welkom, ${r.student.naam}`:r.type==='dubbel'?`${r.student.naam} was al ingecheckt`:`Onbekende studentenpas: ${r.code}`;await load()}
+async function addStudent(){await api('/api/students',{method:'POST',body:JSON.stringify({naam:naam.value,studentnummer:nummer.value,groep:groep.value})});await load()}
+async function removeStudent(id){await api('/api/students/'+id,{method:'DELETE'});await load()}
+async function addGroup(){await api('/api/groups',{method:'POST',body:JSON.stringify({name:newgroup.value})});await load()}
+async function removeGroup(name){await api('/api/groups/'+name,{method:'DELETE'});await load()}
+let buffer='',last=0;document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;const n=Date.now();if(n-last>300)buffer='';last=n;if(e.key==='Enter'){if(buffer){document.getElementById('code').value=buffer;scanStudent()}buffer=''}else if(e.key.length===1)buffer+=e.key});
+load().catch(e=>document.getElementById('app').innerHTML=`<p class="error">${esc(e.message)}</p>`);
+</script>
+</body></html>
