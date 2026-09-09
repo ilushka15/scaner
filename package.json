@@ -1,0 +1,7 @@
+{
+  "name": "aanwezigheidssysteem",
+  "private": true,
+  "scripts": {
+    "dev": "where php >nul 2>nul && php -S localhost:8000 -t . || C:\\xampp\\php\\php.exe -S localhost:8000 -t ."
+  }
+}
