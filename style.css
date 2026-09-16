@@ -200,6 +200,7 @@ label {
 	margin: 28px auto;
 	overflow: hidden;
 	color: var(--muted);
+	border-radius: var(--radius);
 	background: linear-gradient(var(--green), var(--green)) left top / 42px 2px no-repeat,
 		linear-gradient(var(--green), var(--green)) left top / 2px 42px no-repeat,
 		linear-gradient(var(--green), var(--green)) right top / 42px 2px no-repeat,
@@ -208,6 +209,17 @@ label {
 		linear-gradient(var(--green), var(--green)) left bottom / 2px 42px no-repeat,
 		linear-gradient(var(--green), var(--green)) right bottom / 42px 2px no-repeat,
 		linear-gradient(var(--green), var(--green)) right bottom / 2px 42px no-repeat;
+	animation: scanner-breathe 2.4s ease-in-out infinite;
+}
+
+.scan-box::before {
+	content: "";
+	position: absolute;
+	inset: 12% 8%;
+	background: linear-gradient(180deg, transparent 0%, rgba(228, 236, 218, 0.08) 42%, rgba(110, 143, 74, 0.22) 50%, rgba(228, 236, 218, 0.08) 58%, transparent 100%);
+	filter: blur(8px);
+	opacity: 0;
+	animation: scanner-beam 2.4s ease-in-out infinite;
 }
 
 .scan-box::after {
@@ -219,7 +231,7 @@ label {
 	height: 2px;
 	background: var(--green);
 	box-shadow: 0 0 8px 2px rgba(110, 143, 74, 0.45);
-	animation: scan-line 2.4s ease-in-out infinite alternate;
+	animation: scan-line 2.4s ease-in-out infinite;
 }
 
 .scan-box strong,
@@ -235,11 +247,26 @@ label {
 }
 
 @keyframes scan-line {
-	from { transform: translateY(0); opacity: 0.15; }
-	to { transform: translateY(198px); opacity: 0.55; }
+	0% { transform: translateY(0); opacity: 0.15; }
+	12% { opacity: 0.7; }
+	88% { opacity: 0.7; }
+	100% { transform: translateY(198px); opacity: 0.15; }
+}
+
+@keyframes scanner-beam {
+	0%, 18% { transform: translateY(-45%); opacity: 0; }
+	35%, 70% { opacity: 1; }
+	82%, 100% { transform: translateY(45%); opacity: 0; }
+}
+
+@keyframes scanner-breathe {
+	0%, 100% { box-shadow: 0 0 0 rgba(110, 143, 74, 0); }
+	50% { box-shadow: 0 0 28px rgba(110, 143, 74, 0.12); }
 }
 
 @media (prefers-reduced-motion: reduce) {
+	.scan-box,
+	.scan-box::before,
 	.scan-box::after { animation: none; }
 }
 
