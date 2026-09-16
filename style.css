@@ -214,33 +214,24 @@ label {
 		linear-gradient(var(--green), var(--green)) left 17px top 17px / 1px 8px no-repeat,
 		linear-gradient(var(--green), var(--green)) right 17px top 17px / 8px 1px no-repeat,
 		linear-gradient(var(--green), var(--green)) right 17px top 17px / 1px 8px no-repeat;
-	animation: scanner-breathe 2.4s ease-in-out infinite, scanner-frame 2.4s ease-in-out infinite;
+	animation: none;
 }
 
 .scan-box::before {
-	content: "";
-	position: absolute;
-	top: -22%;
-	left: 5%;
-	width: 90%;
-	height: 44%;
-	background: linear-gradient(180deg, transparent, rgba(110, 143, 74, 0.04) 20%, rgba(110, 143, 74, 0.28) 50%, rgba(228, 236, 218, 0.08) 72%, transparent);
-	filter: blur(7px);
-	opacity: 0;
-	transform: translateY(0);
-	animation: scanner-beam 2.4s cubic-bezier(.45, 0, .35, 1) infinite;
+	display: none;
 }
 
 .scan-box::after {
 	content: "";
 	position: absolute;
-	top: 0;
+	top: auto;
+	bottom: 0;
 	left: 8%;
 	width: 84%;
 	height: 2px;
-	background: linear-gradient(90deg, transparent, var(--green) 15%, #b8d38f 50%, var(--green) 85%, transparent);
-	box-shadow: 0 0 7px 2px rgba(110, 143, 74, 0.6), 0 0 18px 3px rgba(110, 143, 74, 0.18);
-	animation: scan-line 2.4s cubic-bezier(.45, 0, .35, 1) infinite;
+	background: var(--green);
+	box-shadow: 0 0 8px 2px rgba(110, 143, 74, 0.45);
+	animation: scan-line 2s ease-in-out infinite alternate;
 }
 
 .scan-box strong,
@@ -257,65 +248,19 @@ label {
 }
 
 .scan-box strong::before {
-	content: "";
-	display: block;
-	width: 28px;
-	height: 28px;
-	margin: 0 auto 12px;
-	border: 2px solid var(--green);
-	border-radius: 50%;
-	box-shadow: inset 0 0 0 5px var(--paper), inset 0 0 0 7px rgba(110, 143, 74, 0.42), 0 0 0 0 rgba(110, 143, 74, 0.24);
-	animation: scanner-target 2.4s ease-in-out infinite;
+	display: none;
 }
 
 .scan-box span::after {
-	content: "";
-	position: absolute;
-	width: 4px;
-	height: 4px;
-	margin: 8px 0 0 5px;
-	border-radius: 50%;
-	background: var(--green);
-	box-shadow: 8px 0 var(--green), 16px 0 var(--green);
-	animation: scanner-dots 1.2s ease-in-out infinite;
+	display: none;
 }
 
 @keyframes scan-line {
-	0% { transform: translateY(0); opacity: 0.15; }
-	12% { opacity: 0.7; }
-	88% { opacity: 0.7; }
-	100% { transform: translateY(198px); opacity: 0.15; }
-}
-
-@keyframes scanner-beam {
-	0%, 12% { transform: translateY(0); opacity: 0; }
-	24%, 65% { opacity: 1; }
-	88%, 100% { transform: translateY(330%); opacity: 0; }
-}
-
-@keyframes scanner-breathe {
-	0%, 100% { box-shadow: 0 0 0 rgba(110, 143, 74, 0); }
-	50% { box-shadow: 0 0 28px rgba(110, 143, 74, 0.12); }
-}
-
-@keyframes scanner-frame {
-	0%, 100% { background-size: 42px 2px, 2px 42px, 42px 2px, 2px 42px, 42px 2px, 2px 42px, 42px 2px, 2px 42px, auto, auto, auto, auto; }
-	50% { background-size: 49px 2px, 2px 49px, 49px 2px, 2px 49px, 49px 2px, 2px 49px, 49px 2px, 2px 49px, auto, auto, auto, auto; }
-}
-
-@keyframes scanner-target {
-	0%, 100% { transform: scale(.9); opacity: .55; }
-	50% { transform: scale(1.08); opacity: 1; box-shadow: inset 0 0 0 5px var(--paper), inset 0 0 0 7px rgba(110, 143, 74, 0.42), 0 0 0 9px rgba(110, 143, 74, 0); }
-}
-
-@keyframes scanner-dots {
-	0%, 100% { opacity: .25; }
-	50% { opacity: 1; }
+	from { transform: translateY(0); }
+	to { transform: translateY(-198px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.scan-box,
-	.scan-box::before,
 	.scan-box::after { animation: none; }
 }
 
